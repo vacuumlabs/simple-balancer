@@ -5,8 +5,6 @@ import { jsonToGraphQLQuery } from 'json-to-graphql-query';
 import {
   TOKEN_PRECISION,
   ZERO_ADDRESS,
-  WETH_ADDRESS,
-  DAI_ADDRESS,
   GKC1_ADDRESS,
   GKC2_ADDRESS,
   DS_PROXY_REGISTRY_ADDRESS,
@@ -20,9 +18,7 @@ import {
   web3,
   scale,
   toWei,
-  np,
 } from './common';
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 const getProxy = async (): Promise<string> => {
   try {
@@ -56,8 +52,7 @@ const createProxy = async (): Promise<string> => {
     DSProxyRegistryAbi.abi,
     DS_PROXY_REGISTRY_ADDRESS,
   );
-  // dsProxyRegistryContract.setProvider(np);
-  console.log({ account });
+
   await dsProxyRegistryContract.methods.build().send({ from: account });
   const proxyAddress = await dsProxyRegistryContract.methods
     .proxies(account)
@@ -179,54 +174,13 @@ const subgraphRequest = async (
   }
 };
 
-const createPool = async () => {
-  console.log('Create pool');
-  try {
-    const proxyAddress = await getOrCreateProxy();
-
-    const tokens = [DAI_ADDRESS, WETH_ADDRESS];
-    const balances = ['1000000000000000000', '62607572233557']; // 1 DAI, ~0.0000626 WETH
-    const weights = ['45000000000000000000', '5000000000000000000']; // 45:5 i.e. 90:10
-    const swapFee = '0.10';
-
-    // web3.eth.abi.encodeFunctionCall didn't work because only
-    //    string parameters are supported for some reason
-    const createPoolFunctionAbi = BActionsAbi.abi[2];
-    const data =
-      web3.eth.abi.encodeFunctionSignature(createPoolFunctionAbi) +
-      web3.eth.abi
-        .encodeParameters(createPoolFunctionAbi.inputs, [
-          B_FACTORY_ADDRESS,
-          tokens,
-          balances,
-          weights,
-          scale(new BigNumber(swapFee), TOKEN_PRECISION - 2).toString(),
-          'true',
-        ])
-        .replace('0x', '');
-
-    console.log('Create pool encoded data:', { data });
-    const dsProxyContract = new web3.eth.Contract(DSProxyAbi.abi, proxyAddress);
-
-    const account = await getAccount();
-    console.log('Executing DS proxy contract');
-    const result = await dsProxyContract.methods
-      .execute(B_ACTIONS_ADDRESS, data)
-      .send({ from: account });
-
-    console.log('DS proxy result: ', { result });
-  } catch (e) {
-    console.log('DS proxy error:', e);
-  }
-};
-
 const createCustomPool = async () => {
   console.log('Create pool');
   try {
     const proxyAddress = await getOrCreateProxy();
 
     const tokens = [GKC1_ADDRESS, GKC2_ADDRESS];
-    const balances = ['10000000000000000000', '100000000000000000000']; // 10 GKC1, 100 GKC2
+    const balances = ['100000000000000000000', '1000000000000000000000']; // 100 GKC1, 1000 GKC2
     const weights = ['10000000000000000000', '1000000000000000000']; // 10:1
     const swapFee = '0.10';
 
@@ -277,8 +231,8 @@ const exitPool = async (poolId: string) => {
     console.log('Exit pool error', e);
   }
 };
+
 export {
-  createPool,
   getOrCreateProxy,
   getMyPools,
   getPools,

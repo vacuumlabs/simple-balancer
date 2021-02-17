@@ -17,45 +17,21 @@ yarn
 yarn start
 ```
 
-## TODO
+If you'd like to receive some GKC1 or GKC2 just send me your address and I will provide you some.
 
-- [x] login with metamask
-  - [x] unlock metamask - in order to get accounts
-- [x] show account balance
-  - [x] show as formatted number
-- [x] load SOR pools
-- [x] make simple, fixed trade
-- [x] swap eth for WETH and DAI
-- [x] unlock tokens
-- [x] create pool
-- [x] get pools
-- [x] exit pool
-- [x] add logging
-- [x] add README
-- [x] try swapping ETH directly for DAI
-- [x] create custom tokens
-- [x] swap custom tokens
-- [x] repeat with our own contracts
-  - [x] swap eth for custom tokens
-  - [x] create pool with custom tokens
-  - [x] make simple trade with custom tokens
-- [ ] repeat for NEAR
+For SOR to work with NEAR and your custom pools you should clone [balancer-sor](https://github.com/vacuumlabs/balancer-sor) and import (or [link](https://classic.yarnpkg.com/en/docs/cli/link/)) the local version in `package.json`.
 
 ## Overview
 
 ### Swaps
 
-In order to be able to do anything, you first need to have Metamask unlocked. Do this using the `Unlock metamask` button or the `unlockMetamask` function.
+In order to be able to do anything, you first need to have login with NEAR. Do this using the `Login with NEAR` button or the `loginWithNear` function.
 
-After unlocking Metamask you can get your account balances - by using the `Refresh` button next to balances or by calling the individual `get***Balance/get***Allowance` functions.
+After logging in you can get your account balances - by using the `Refresh` button next to balances or by calling the individual `get***Balance/get***Allowance` functions - I've removed ETH, WETH and DAI in the NEAR version.
 
-If you have no tokens you can use the `Swap ETH for WETH` button to, well, swap your ETH for WETH. By default `0.1` ETH is exchanged (this can be changed in the UI code). This should trigger a transaction, opening Metamask and requesting you to accept the transaction. After the transaction is done (the `Loading...` text should disappear) you need to hit the balances `Refresh` button again (I'm not refreshing automatically to keep it as simple as possible).
+If you have no GKC1 or GKC2 tokens just send me your address and I will provide you some.
 
-Next to each **Token** balance (not ETH) you can see the allowance for Exchange Proxy - i.e. how much tokens are unlocked. If it's 0, Balancer doesn't have access to those tokens (allowance) and the tokens need to be unlocked - you can again use a button for that or you can use the function calls for that - the function unlocks the tokens for both the exhchange proxy and the DS proxy contract so expect two transactions. For now `MAX_UINT_256` tokens are unlocked, this can easily be changed in the `unlockAsset` function. The `MAX_UINT_256` is the reason why the allowance is so huge after unlocking - sorry, feel free to modify. And again, after unlocking, you need to hit the balances `Refresh` button.
-
-To swap WETH for DAI you can use the `Swap` button. By default, this swaps _0.001 WETH_ for an amount of DAI returned by SOR.
-
-You can also swap ETH for DAI directly - see the `swapETHforDAI` function.
+Next to each **Token** balance you can see the allowance for Exchange/DS Proxy - i.e. how much tokens are unlocked. If it's 0, Balancer doesn't have access to those tokens (allowance) and the tokens need to be unlocked - you can again use a button for that or you can use the function calls for that - the function unlocks the tokens for both the exhchange proxy and the DS proxy contract so expect two transactions. For now `MAX_UINT_256` tokens are unlocked, this can easily be changed in the `unlockAsset` function. The `MAX_UINT_256` is the reason why the allowance is so huge after unlocking - sorry, feel free to modify. And again, after unlocking, you need to hit the balances `Refresh` button.
 
 Custom tokens can also be swapped (`swapGKC1forGKC2`) after a pool has been created.
 
@@ -65,17 +41,54 @@ _NOTE: Token swapping is rather slow because fetching the swaps from SOR takes s
 
 The UI also enables to "manage" your pools. In order to create a pool you first need to have a DS Proxy created for your account. You can use the `Create proxy` button for that.
 
-After you've created your proxy you can create a pool. This creates a WETH <-> DAI pool by default with some fixed amounts of both tokens. This can be modified in the `createPool` function - but be careful to adjust both `balances` and `weights`. You of course need to have the amount of tokens available on your account. After a pool is created you need to manually refresh the list to see it.
+After you've created your proxy you can create a custom pool. This creates a GKC1 <-> GKC2 pool by default with some fixed amounts of both tokens. This can be modified in the `createCustomPool` function - but be careful to adjust both `balances` and `weights`. You of course need to have the amount of tokens available on your account. After a pool is created you need to manually refresh the list to see it.
 
-I've also tried creating a pool for custom tokens - `createCustomPool`. It works pretty much the same. This revealed to me that the tokens also need to be unlocked for DS Proxy.
+**Hacks regarding the pools:**
 
-_NOTE: It can take about a minute for your new pool to appear in the list - so just try refreshing a couple of times._
+These are needed until we replace subgraph functionality on NEAR.
 
-You can also exit the pool by clicking the button next to it. This frees all your tokens.
+After you create a pool check the console output for "DS proxy result:". The pool id (address) can for now be found under `result.events[0].raw.topics[2]`.
+
+For now, SOR needs to be modified to work with this pool. Modify `getAllPublicSwapPools` to return the pool directly. E.g.:
+
+```
+return {
+  pools: [
+      {
+          id: '0x6a60ec11b03bc26c0632a7ea6de2c75562f0c657'.toLowerCase(),
+          publicSwap: 'true',
+          swapFee: '0.000001',
+          tokens: [
+              {
+                  address: '0xE599045A0a93fF901B995c755f1599DB6ACD44e6'.toLowerCase(),
+                  balance: '100',
+                  decimals: '18',
+                  denormWeight: '10',
+              },
+              {
+                  address: '0xc1dd4f43e799A08Ec72b455c723C7FE0e9e85A70'.toLowerCase(),
+                  balance: '1000',
+                  decimals: '18',
+                  denormWeight: '1',
+              },
+          ],
+          tokensList: [
+              '0xE599045A0a93fF901B995c755f1599DB6ACD44e6'.toLowerCase(),
+              '0xc1dd4f43e799A08Ec72b455c723C7FE0e9e85A70'.toLowerCase(),
+          ],
+          totalWeight: '11',
+      },
+  ],
+};
+```
+
+Also the `result` variable in `multicall.getAllPoolDataOnChain` needs to be modified to contain the token balances.
+
+_NOTE: The pool won't be shown in `My pools` until we figure out a subgraph alternative._
 
 ## Contracts used (so far)
 
-### WETH
+### WETH (not deployed to NEAR)
 
 Used for wrapping ETH. The `Swap ETH for WETH` button uses this contract to deposit ETH thus receiving WETH. I haven't yet tried to swap directly from ETH to DAI, but I **think** SOR should be able to handle that.
 

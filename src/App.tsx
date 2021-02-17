@@ -7,13 +7,7 @@ import { getAccount } from './balancer/common';
 
 const App = () => {
   const [account, setAccount] = useState<string>('');
-  const [ETHBalance, setETHBalance] = useState<BigNumber>(new BigNumber(0));
-  const [WETHBalance, setWETHBalance] = useState<BigNumber>(new BigNumber(0));
-  const [WETHAllowance, setWETHAllowance] = useState<BigNumber>(
-    new BigNumber(0),
-  );
-  const [DAIBalance, setDAIBalance] = useState<BigNumber>(new BigNumber(0));
-  const [DAIAllowance, setDAIAllowance] = useState<BigNumber>(new BigNumber(0));
+
   const [GKC1Balance, setGKC1Balance] = useState<BigNumber>(new BigNumber(0));
   const [GKC1Allowance, setGKC1Allowance] = useState<BigNumber>(
     new BigNumber(0),
@@ -31,31 +25,16 @@ const App = () => {
 
   const refreshBalances = useCallback(async () => {
     const [
-      // ethBalance,
-      // wethBalance,
-      // wethAllowance,
-      // daiBalance,
-      // daiAllowance,
       gkc1Balance,
       gkc1Allowance,
       gkc2Balance,
       gkc2Allowance,
     ] = await Promise.all([
-      // SB.getETHBalance(),
-      // SB.getWETHBalance(),
-      // SB.getWETHAllowance(),
-      // SB.getDAIBalance(),
-      // SB.getDAIAllowance(),
       SB.getGKC1Balance(),
       SB.getGKC1Allowance(),
       SB.getGKC2Balance(),
       SB.getGKC2Allowance(),
     ]);
-    // setETHBalance(ethBalance);
-    // setWETHBalance(wethBalance);
-    // setWETHAllowance(wethAllowance);
-    // setDAIBalance(daiBalance);
-    // setDAIAllowance(daiAllowance);
     setGKC1Balance(gkc1Balance);
     setGKC1Allowance(gkc1Allowance);
     setGKC2Balance(gkc2Balance);
@@ -105,12 +84,11 @@ const App = () => {
         <button
           onClick={() => {
             withLoading(async () => {
-              // await SB.unlockMetamask();
-              await SB.initNear2();
+              await SB.loginWithNear();
               setAccount(await getAccount());
             });
           }}>
-          Unlock metamask
+          Login with NEAR
         </button>
       </div>
     );
@@ -119,29 +97,12 @@ const App = () => {
   return (
     <div className="App">
       {isLoading && <h1>Loading...</h1>}
+      <h1>{account}</h1>
       <button
         onClick={() => {
-          withLoading(async () => await SB.swapETHforWETH(0.01));
-        }}>
-        Swap ETH for WETH
-      </button>
-      <button
-        onClick={() => {
-          withLoading(async () => await SB.swapETHforDAI(0.001));
-        }}>
-        Swap ETH for DAI
-      </button>
-      <button
-        onClick={() => {
-          withLoading(async () => await SB.swapGKC1forGKC2(0.0001));
+          withLoading(async () => await SB.swapGKC1forGKC2(0.01));
         }}>
         Swap GKC1 for GKC2
-      </button>
-      <button
-        onClick={() => {
-          withLoading(async () => await SB.swapWETHforDai(0.001));
-        }}>
-        Swap
       </button>
       <h2>
         Balances{' '}
@@ -152,19 +113,6 @@ const App = () => {
           Refresh
         </button>
       </h2>
-      <p>{ETHBalance.toFixed(4)} ETH</p>
-      <p>
-        {WETHBalance.toFixed(4)} WETH ({WETHAllowance.toFixed(4)}){' '}
-        <button onClick={() => withLoading(async () => SB.unlockWETH())}>
-          Unlock
-        </button>
-      </p>
-      <p>
-        {DAIBalance.toFixed(4)} DAI ({DAIAllowance.toFixed(4)}){' '}
-        <button onClick={() => withLoading(async () => SB.unlockDAI())}>
-          Unlock
-        </button>
-      </p>
       <p>
         {GKC1Balance.toFixed(4)} GKC1 ({GKC1Allowance.toFixed(4)}){' '}
         <button onClick={() => withLoading(async () => SB.unlockGKC1())}>
@@ -207,12 +155,6 @@ const App = () => {
         </div>
       ))}
       <br />
-      <button
-        onClick={() => {
-          withLoading(async () => SBP.createPool());
-        }}>
-        Create pool
-      </button>
       <button
         onClick={() => {
           withLoading(async () => SBP.createCustomPool());
