@@ -31,31 +31,31 @@ const App = () => {
 
   const refreshBalances = useCallback(async () => {
     const [
-      ethBalance,
-      wethBalance,
-      wethAllowance,
-      daiBalance,
-      daiAllowance,
+      // ethBalance,
+      // wethBalance,
+      // wethAllowance,
+      // daiBalance,
+      // daiAllowance,
       gkc1Balance,
       gkc1Allowance,
       gkc2Balance,
       gkc2Allowance,
     ] = await Promise.all([
-      SB.getETHBalance(),
-      SB.getWETHBalance(),
-      SB.getWETHAllowance(),
-      SB.getDAIBalance(),
-      SB.getDAIAllowance(),
+      // SB.getETHBalance(),
+      // SB.getWETHBalance(),
+      // SB.getWETHAllowance(),
+      // SB.getDAIBalance(),
+      // SB.getDAIAllowance(),
       SB.getGKC1Balance(),
       SB.getGKC1Allowance(),
       SB.getGKC2Balance(),
       SB.getGKC2Allowance(),
     ]);
-    setETHBalance(ethBalance);
-    setWETHBalance(wethBalance);
-    setWETHAllowance(wethAllowance);
-    setDAIBalance(daiBalance);
-    setDAIAllowance(daiAllowance);
+    // setETHBalance(ethBalance);
+    // setWETHBalance(wethBalance);
+    // setWETHAllowance(wethAllowance);
+    // setDAIBalance(daiBalance);
+    // setDAIAllowance(daiAllowance);
     setGKC1Balance(gkc1Balance);
     setGKC1Allowance(gkc1Allowance);
     setGKC2Balance(gkc2Balance);
@@ -73,7 +73,7 @@ const App = () => {
   useEffect(() => {
     const init = async () => {
       if (!account) {
-        setAccount(await getAccount());
+        // setAccount(await getAccount());
         return;
       }
 
@@ -105,7 +105,8 @@ const App = () => {
         <button
           onClick={() => {
             withLoading(async () => {
-              await SB.unlockMetamask();
+              // await SB.unlockMetamask();
+              await SB.initNear2();
               setAccount(await getAccount());
             });
           }}>
@@ -132,7 +133,7 @@ const App = () => {
       </button>
       <button
         onClick={() => {
-          withLoading(async () => await SB.swapGKC1forGKC2(0.01));
+          withLoading(async () => await SB.swapGKC1forGKC2(0.0001));
         }}>
         Swap GKC1 for GKC2
       </button>

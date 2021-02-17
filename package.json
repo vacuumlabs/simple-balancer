@@ -16,6 +16,7 @@
     "bignumber.js": "^9.0.1",
     "json-to-graphql-query": "^2.0.0",
     "lodash": "^4.17.20",
+    "near-web3-provider": "^1.1.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.2",

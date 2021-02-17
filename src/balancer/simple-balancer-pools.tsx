@@ -20,6 +20,7 @@ import {
   web3,
   scale,
   toWei,
+  np,
 } from './common';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
@@ -55,6 +56,8 @@ const createProxy = async (): Promise<string> => {
     DSProxyRegistryAbi.abi,
     DS_PROXY_REGISTRY_ADDRESS,
   );
+  // dsProxyRegistryContract.setProvider(np);
+  console.log({ account });
   await dsProxyRegistryContract.methods.build().send({ from: account });
   const proxyAddress = await dsProxyRegistryContract.methods
     .proxies(account)

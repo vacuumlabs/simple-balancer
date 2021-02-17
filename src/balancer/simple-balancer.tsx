@@ -17,6 +17,7 @@ import {
   ETH_ADDRESS,
   GKC1_ADDRESS,
   GKC2_ADDRESS,
+  initNear,
 } from './common';
 import { getProxy } from './simple-balancer-pools';
 
@@ -121,15 +122,18 @@ const unlockGKC2 = async () => {
   await unlockAsset(GKC2_ADDRESS, await getProxy());
 };
 
-const unlockMetamask = async () => {
-  console.log('Unlock Metamask');
-  try {
-    await Web3.givenProvider.enable();
-    const accounts = await web3.eth.getAccounts();
-    console.log('Accounts received from Metamask:', { accounts });
-  } catch (e) {
-    console.log('Unlock metamask error:', e);
-  }
+// const unlockMetamask = async () => {
+//   console.log('Unlock Metamask');
+//   try {
+//     await Web3.givenProvider.enable();
+//     const accounts = await web3.eth.getAccounts();
+//     console.log('Accounts received from Metamask:', { accounts });
+//   } catch (e) {
+//     console.log('Unlock metamask error:', e);
+//   }
+// };
+const initNear2 = async () => {
+  await initNear();
 };
 
 const swapETHforWETH = async (amount: number) => {
@@ -318,7 +322,7 @@ const swapGKC1forGKC2 = async (amount: number) => {
       .send({ from: await getAccount() });
     console.log('Swap result:', { result });
   } catch (e) {
-    console.log('Swap WETH for DAI error:', e);
+    console.log('Swap GKC1 for GKC2 error:', e);
     throw e;
   }
 };
@@ -333,7 +337,7 @@ export {
   swapETHforDAI,
   swapWETHforDai,
   swapGKC1forGKC2,
-  unlockMetamask,
+  // unlockMetamask,
   unlockWETH,
   unlockDAI,
   unlockGKC1,
@@ -342,4 +346,5 @@ export {
   getGKC1Allowance,
   getGKC2Balance,
   getGKC2Allowance,
+  initNear2,
 };
