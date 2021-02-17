@@ -10,6 +10,13 @@ The Balancer part of the app is in the `src/balancer` folder. This folder contai
 
 The React app serves only to demonstrate the usage of the `balancer` stuff. I tried to keep everything as simple as possible, but it's slowly growing.
 
+## Setup
+
+```
+yarn
+yarn start
+```
+
 ## TODO
 
 - [x] login with metamask
@@ -25,13 +32,13 @@ The React app serves only to demonstrate the usage of the `balancer` stuff. I tr
 - [x] exit pool
 - [x] add logging
 - [x] add README
-- [ ] try swapping ETH directly for DAI
-- [ ] create custom tokens
-- [ ] swap custom tokens
-- [ ] repeat with our own contracts
-  - [ ] swap eth for custom tokens
-  - [ ] create pool with custom tokens
-  - [ ] make simple trade with custom tokens
+- [x] try swapping ETH directly for DAI
+- [x] create custom tokens
+- [x] swap custom tokens
+- [x] repeat with our own contracts
+  - [x] swap eth for custom tokens
+  - [x] create pool with custom tokens
+  - [x] make simple trade with custom tokens
 - [ ] repeat for NEAR
 
 ## Overview
@@ -44,9 +51,13 @@ After unlocking Metamask you can get your account balances - by using the `Refre
 
 If you have no tokens you can use the `Swap ETH for WETH` button to, well, swap your ETH for WETH. By default `0.1` ETH is exchanged (this can be changed in the UI code). This should trigger a transaction, opening Metamask and requesting you to accept the transaction. After the transaction is done (the `Loading...` text should disappear) you need to hit the balances `Refresh` button again (I'm not refreshing automatically to keep it as simple as possible).
 
-Next to each **Token** balance (not ETH) you can see the allowance for Exchange Proxy - i.e. how much tokens are unlocked. If it's 0, Balancer doesn't have access to those tokens (allowance) and the tokens need to be unlocked - you can again use a button for that or you can use the function calls for that. For now `MAX_UINT_256` tokens are unlocked, this can easily be changed in the `unlockAsset` function. The `MAX_UINT_256` is the reason why the allowance is so huge after unlocking - sorry, feel free to modify. And again, after unlocking, you need to hit the balances `Refresh` button.
+Next to each **Token** balance (not ETH) you can see the allowance for Exchange Proxy - i.e. how much tokens are unlocked. If it's 0, Balancer doesn't have access to those tokens (allowance) and the tokens need to be unlocked - you can again use a button for that or you can use the function calls for that - the function unlocks the tokens for both the exhchange proxy and the DS proxy contract so expect two transactions. For now `MAX_UINT_256` tokens are unlocked, this can easily be changed in the `unlockAsset` function. The `MAX_UINT_256` is the reason why the allowance is so huge after unlocking - sorry, feel free to modify. And again, after unlocking, you need to hit the balances `Refresh` button.
 
 To swap WETH for DAI you can use the `Swap` button. By default, this swaps _0.001 WETH_ for an amount of DAI returned by SOR.
+
+You can also swap ETH for DAI directly - see the `swapETHforDAI` function.
+
+Custom tokens can also be swapped (`swapGKC1forGKC2`) after a pool has been created.
 
 _NOTE: Token swapping is rather slow because fetching the swaps from SOR takes some time._
 
@@ -55,6 +66,8 @@ _NOTE: Token swapping is rather slow because fetching the swaps from SOR takes s
 The UI also enables to "manage" your pools. In order to create a pool you first need to have a DS Proxy created for your account. You can use the `Create proxy` button for that.
 
 After you've created your proxy you can create a pool. This creates a WETH <-> DAI pool by default with some fixed amounts of both tokens. This can be modified in the `createPool` function - but be careful to adjust both `balances` and `weights`. You of course need to have the amount of tokens available on your account. After a pool is created you need to manually refresh the list to see it.
+
+I've also tried creating a pool for custom tokens - `createCustomPool`. It works pretty much the same. This revealed to me that the tokens also need to be unlocked for DS Proxy.
 
 _NOTE: It can take about a minute for your new pool to appear in the list - so just try refreshing a couple of times._
 

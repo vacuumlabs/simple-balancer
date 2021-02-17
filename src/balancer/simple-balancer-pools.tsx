@@ -7,6 +7,8 @@ import {
   ZERO_ADDRESS,
   WETH_ADDRESS,
   DAI_ADDRESS,
+  GKC1_ADDRESS,
+  GKC2_ADDRESS,
   DS_PROXY_REGISTRY_ADDRESS,
   B_ACTIONS_ADDRESS,
   B_FACTORY_ADDRESS,
@@ -19,6 +21,7 @@ import {
   scale,
   toWei,
 } from './common';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 const getProxy = async (): Promise<string> => {
   try {
@@ -214,6 +217,47 @@ const createPool = async () => {
   }
 };
 
+const createCustomPool = async () => {
+  console.log('Create pool');
+  try {
+    const proxyAddress = await getOrCreateProxy();
+
+    const tokens = [GKC1_ADDRESS, GKC2_ADDRESS];
+    const balances = ['10000000000000000000', '100000000000000000000']; // 10 GKC1, 100 GKC2
+    const weights = ['10000000000000000000', '1000000000000000000']; // 10:1
+    const swapFee = '0.10';
+
+    // web3.eth.abi.encodeFunctionCall didn't work because only
+    //    string parameters are supported for some reason
+    const createPoolFunctionAbi = BActionsAbi.abi[2];
+    const data =
+      web3.eth.abi.encodeFunctionSignature(createPoolFunctionAbi) +
+      web3.eth.abi
+        .encodeParameters(createPoolFunctionAbi.inputs, [
+          B_FACTORY_ADDRESS,
+          tokens,
+          balances,
+          weights,
+          scale(new BigNumber(swapFee), TOKEN_PRECISION - 2).toString(),
+          'true',
+        ])
+        .replace('0x', '');
+
+    console.log('Create pool encoded data:', { data });
+    const dsProxyContract = new web3.eth.Contract(DSProxyAbi.abi, proxyAddress);
+
+    const account = await getAccount();
+    console.log('Executing DS proxy contract');
+    const result = await dsProxyContract.methods
+      .execute(B_ACTIONS_ADDRESS, data)
+      .send({ from: account });
+
+    console.log('DS proxy result: ', { result });
+  } catch (e) {
+    console.log('DS proxy error:', e);
+  }
+};
+
 const exitPool = async (poolId: string) => {
   console.log(`Exit pool ${poolId}`);
   try {
@@ -239,4 +283,5 @@ export {
   exitPool,
   getProxy,
   createProxy,
+  createCustomPool,
 };
