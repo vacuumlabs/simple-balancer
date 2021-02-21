@@ -1,4 +1,6 @@
 import { SOR } from '@balancer-labs/sor';
+import { MaxUint256 } from '@ethersproject/constants';
+import { Contract } from '@ethersproject/contracts';
 import { InfuraProvider } from '@ethersproject/providers';
 import BigNumber from 'bignumber.js';
 import {
@@ -13,6 +15,7 @@ import {
   GKC1_ADDRESS,
   GKC2_ADDRESS,
   initNear,
+  ethersWeb3,
 } from './common';
 import { getProxy } from './simple-balancer-pools';
 
@@ -23,21 +26,28 @@ const loginWithNear = async () => {
 const getAssetBalance = async (assetAddress: string): Promise<BigNumber> => {
   console.log(`Get asset ${assetAddress} balance`);
 
-  const assetContract = new web3.eth.Contract(ERC20Abi, assetAddress);
-  const result = await assetContract.methods
-    .balanceOf(await getAccount())
-    .call();
-  return scale(new BigNumber(result), -TOKEN_PRECISION);
+  const assetContract = new Contract(
+    assetAddress,
+    ERC20Abi,
+    ethersWeb3.getSigner(),
+  );
+  const result = await assetContract.balanceOf(await getAccount());
+  return scale(new BigNumber(result.toString()), -TOKEN_PRECISION);
 };
 
 const getAssetAllowance = async (assetAddress: string): Promise<BigNumber> => {
   console.log(`Get asset ${assetAddress} allowance`);
 
-  const assetContract = new web3.eth.Contract(ERC20Abi, assetAddress);
-  const result = await assetContract.methods
-    .allowance(await getAccount(), EXCHANGE_PROXY_ADDRESS)
-    .call();
-  return scale(new BigNumber(result), -TOKEN_PRECISION);
+  const assetContract = new Contract(
+    assetAddress,
+    ERC20Abi,
+    ethersWeb3.getSigner(),
+  );
+  const result = await assetContract.allowance(
+    await getAccount(),
+    EXCHANGE_PROXY_ADDRESS,
+  );
+  return scale(new BigNumber(result.toString()), -TOKEN_PRECISION);
 };
 
 const getGKC1Balance = async (): Promise<BigNumber> => {
@@ -63,10 +73,12 @@ const getGKC2Allowance = async (): Promise<BigNumber> => {
 const unlockAsset = async (assetAddress: string, unlockFor: string) => {
   console.log(`Unlock asset ${assetAddress}`);
   try {
-    const assetContract = new web3.eth.Contract(ERC20Abi, assetAddress);
-    await assetContract.methods
-      .approve(unlockFor, MAX_UINT_256)
-      .send({ from: await getAccount() });
+    const assetContract = new Contract(
+      assetAddress,
+      ERC20Abi,
+      ethersWeb3.getSigner(),
+    );
+    await assetContract.approve(unlockFor, MaxUint256);
   } catch (e) {
     console.log(`Unlock asset ${assetAddress} error:`, e);
     throw e;
@@ -75,12 +87,12 @@ const unlockAsset = async (assetAddress: string, unlockFor: string) => {
 
 const unlockGKC1 = async () => {
   await unlockAsset(GKC1_ADDRESS, EXCHANGE_PROXY_ADDRESS);
-  await unlockAsset(GKC1_ADDRESS, await getProxy());
+  // await unlockAsset(GKC1_ADDRESS, await getProxy());
 };
 
 const unlockGKC2 = async () => {
   await unlockAsset(GKC2_ADDRESS, EXCHANGE_PROXY_ADDRESS);
-  await unlockAsset(GKC2_ADDRESS, await getProxy());
+  // await unlockAsset(GKC2_ADDRESS, await getProxy());
 };
 
 const swapGKC1forGKC2 = async (amount: number) => {

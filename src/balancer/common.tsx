@@ -1,6 +1,7 @@
 import Web3 from 'web3';
 import BigNumber from 'bignumber.js';
 import { nearAPI, NearProvider } from 'near-web3-provider';
+import { Web3Provider } from '@ethersproject/providers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const MAX_UINT_256 = new BigNumber(
@@ -40,6 +41,7 @@ const nearConfig = {
 
 // COMMON VARIABLES/FUNCTIONS
 export let web3 = null;
+export let ethersWeb3 = null;
 
 export const initNear = async () => {
   const near = await nearAPI.connect(nearConfig);
@@ -66,6 +68,8 @@ export const initNear = async () => {
       isReadOnly: false,
     }),
   );
+
+  ethersWeb3 = new Web3Provider(web3.currentProvider);
 };
 
 export const getAccount = async (): Promise<string> => {

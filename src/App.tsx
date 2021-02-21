@@ -57,15 +57,15 @@ const App = () => {
       }
 
       refreshBalances();
-      refreshMyPools();
+      // refreshMyPools();
 
-      const [proxy, pools] = await Promise.all([
-        SBP.getProxy(),
-        SBP.getPools(),
-      ]);
+      // const [proxy, pools] = await Promise.all([
+      //   SBP.getProxy(),
+      //   SBP.getPools(),
+      // ]);
 
-      setPoolProxy(proxy);
-      setAllPools(pools);
+      // setPoolProxy(proxy);
+      // setAllPools(pools);
     };
 
     init();
