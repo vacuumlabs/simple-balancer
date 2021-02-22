@@ -10,8 +10,8 @@ export const MAX_UINT_256 = new BigNumber(
 export const TOKEN_PRECISION = 18;
 
 // NEAR TOKENS
-export const GKC1_ADDRESS = '0xE599045A0a93fF901B995c755f1599DB6ACD44e6';
-export const GKC2_ADDRESS = '0xc1dd4f43e799A08Ec72b455c723C7FE0e9e85A70';
+export const GKC1_ADDRESS = '0x00546B70b619a35c5A69fea3eC676A4894e828b4'; // changed to my locally deployed contract
+export const GKC2_ADDRESS = '0x00546B70b619a35c5A69fea3eC676A4894e828b4'; // changed to my locally deployed contract
 
 // NEAR CONTRACT ADDRESSES
 export const EXCHANGE_PROXY_ADDRESS =
@@ -31,10 +31,10 @@ export const BPoolAbi = require('../abi/BPool.json');
 export const WETHAbi = require('../abi/Weth.json');
 
 const nearConfig = {
-  nodeUrl: 'https://rpc.betanet.near.org/',
-  keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore(),
-  networkId: 'betanet',
-  evmAccountId: 'evm',
+  nodeUrl: 'http://localhost:3030',
+  keyStore: null,
+  networkId: 'local',
+  evmAccountId: 'evm.test.node0',
   walletUrl: 'https://wallet.betanet.near.org',
   explorerUrl: 'https://explorer.betanet.near.org',
 };
@@ -44,23 +44,20 @@ export let web3 = null;
 export let ethersWeb3 = null;
 
 export const initNear = async () => {
-  const near = await nearAPI.connect(nearConfig);
-
-  const walletAccount = new nearAPI.WalletAccount(near, undefined);
-  await walletAccount.requestSignIn(
-    'evm',
-    'Balancer Exchange',
-    undefined,
-    undefined,
+  nearConfig.keyStore = new nearAPI.keyStores.InMemoryKeyStore();
+  nearConfig.keyStore.setKey(
+    nearConfig.networkId,
+    'test.node0',
+    nearAPI.KeyPair.fromString(
+      'ed25519:4rHGLsuecsrdmMCJDw9vHLLMwHFUV5v4UGVBgbmaqVSmFcqhaDNHZxu1cKnMzMoYfrQHuvwU1BZC783SNbCHGpes',
+    ),
   );
-
-  const accountId = walletAccount.getAccountId();
 
   web3 = new Web3(
     new NearProvider({
       nodeUrl: nearConfig.nodeUrl,
       keyStore: nearConfig.keyStore,
-      masterAccountId: accountId,
+      masterAccountId: 'test.node0',
       networkId: nearConfig.networkId,
       evmAccountId: nearConfig.evmAccountId,
       walletUrl: nearConfig.walletUrl,

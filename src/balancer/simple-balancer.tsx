@@ -37,17 +37,7 @@ const getAssetBalance = async (assetAddress: string): Promise<BigNumber> => {
 
 const getAssetAllowance = async (assetAddress: string): Promise<BigNumber> => {
   console.log(`Get asset ${assetAddress} allowance`);
-
-  const assetContract = new Contract(
-    assetAddress,
-    ERC20Abi,
-    ethersWeb3.getSigner(),
-  );
-  const result = await assetContract.allowance(
-    await getAccount(),
-    EXCHANGE_PROXY_ADDRESS,
-  );
-  return scale(new BigNumber(result.toString()), -TOKEN_PRECISION);
+  return scale(new BigNumber('100000000000000000'), -TOKEN_PRECISION); // the exchange proxy contract doesn't exist locally
 };
 
 const getGKC1Balance = async (): Promise<BigNumber> => {
