@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import * as SB from './balancer/simple-balancer';
 import * as SBP from './balancer/simple-balancer-pools';
+import * as RB from './balancer/rainbow-bridge';
 import BigNumber from 'bignumber.js';
-import { getAccount } from './balancer/common';
+import { getAccount, getEthAccount, initEth } from './balancer/common';
 
 const App = () => {
   const [account, setAccount] = useState<string>('');
+  const [ETHAccount, setETHAccount] = useState<string>('');
+  const [transfers, setTransfers] = useState<any[]>([]);
 
   const [GKC1Balance, setGKC1Balance] = useState<BigNumber>(new BigNumber(0));
   const [GKC1Allowance, setGKC1Allowance] = useState<BigNumber>(
@@ -24,21 +27,21 @@ const App = () => {
   const [allPools, setAllPools] = useState<any[]>([]);
 
   const refreshBalances = useCallback(async () => {
-    const [
-      gkc1Balance,
-      gkc1Allowance,
-      gkc2Balance,
-      gkc2Allowance,
-    ] = await Promise.all([
-      SB.getGKC1Balance(),
-      SB.getGKC1Allowance(),
-      SB.getGKC2Balance(),
-      SB.getGKC2Allowance(),
-    ]);
-    setGKC1Balance(gkc1Balance);
-    setGKC1Allowance(gkc1Allowance);
-    setGKC2Balance(gkc2Balance);
-    setGKC2Allowance(gkc2Allowance);
+    // const [
+    //   gkc1Balance,
+    //   gkc1Allowance,
+    //   gkc2Balance,
+    //   gkc2Allowance,
+    // ] = await Promise.all([
+    //   SB.getGKC1Balance(),
+    //   SB.getGKC1Allowance(),
+    //   SB.getGKC2Balance(),
+    //   SB.getGKC2Allowance(),
+    // ]);
+    // setGKC1Balance(gkc1Balance);
+    // setGKC1Allowance(gkc1Allowance);
+    // setGKC2Balance(gkc2Balance);
+    // setGKC2Allowance(gkc2Allowance);
   }, []);
 
   const refreshMyPools = useCallback(async () => {
@@ -59,13 +62,15 @@ const App = () => {
       refreshBalances();
       refreshMyPools();
 
-      const [proxy, pools] = await Promise.all([
+      const [proxy, pools, transfers] = await Promise.all([
         SBP.getProxy(),
         SBP.getPools(),
+        RB.getCurrentTransfers(),
       ]);
 
       setPoolProxy(proxy);
       setAllPools(pools);
+      setTransfers(transfers);
     };
 
     init();
@@ -167,6 +172,40 @@ const App = () => {
           <p>{p.id}</p>
         </div>
       ))}
+      <button
+        onClick={() => {
+          withLoading(async () => {
+            await initEth();
+            setETHAccount(await getEthAccount());
+          });
+        }}>
+        Login with ETH {ETHAccount}
+      </button>
+      <button
+        onClick={() => {
+          withLoading(async () => {
+            await RB.swap();
+          });
+        }}>
+        Rainbow Bridge Swap
+      </button>
+      {transfers && (
+        <ol>
+          {transfers.map((transfer) => (
+            <li className="transfer" id={transfer.id}>
+              {transfer.amount}
+              {transfer.sourceTokenName} from
+              {transfer.sender} to
+              {transfer.recipient}
+              {!transfer.callToAction && (
+                <button className="act-on-transfer">
+                  {transfer.callToAction}
+                </button>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 };

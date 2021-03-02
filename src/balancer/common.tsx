@@ -1,6 +1,9 @@
 import Web3 from 'web3';
 import BigNumber from 'bignumber.js';
 import { nearAPI, NearProvider } from 'near-web3-provider';
+import { setEthProvider, setNearConnection } from '@near-eth/client';
+import Web3Modal from 'web3modal';
+import { walletconnect } from 'web3modal/dist/providers/connectors';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const MAX_UINT_256 = new BigNumber(
@@ -11,6 +14,8 @@ export const TOKEN_PRECISION = 18;
 // NEAR TOKENS
 export const GKC1_ADDRESS = '0xE599045A0a93fF901B995c755f1599DB6ACD44e6';
 export const GKC2_ADDRESS = '0xc1dd4f43e799A08Ec72b455c723C7FE0e9e85A70';
+
+export const TST_ADDRESS_ON_ETH = '0x722dd3F80BAC40c951b51BdD28Dd19d435762180';
 
 // NEAR CONTRACT ADDRESSES
 export const EXCHANGE_PROXY_ADDRESS =
@@ -30,29 +35,44 @@ export const BPoolAbi = require('../abi/BPool.json');
 export const WETHAbi = require('../abi/Weth.json');
 
 const nearConfig = {
-  nodeUrl: 'https://rpc.betanet.near.org/',
+  nodeUrl: 'https://rpc.testnet.near.org/',
   keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore(),
-  networkId: 'betanet',
+  networkId: 'testnet',
   evmAccountId: 'evm',
-  walletUrl: 'https://wallet.betanet.near.org',
-  explorerUrl: 'https://explorer.betanet.near.org',
+  walletUrl: 'https://wallet.testnet.near.org',
+  helperUrl: 'https://helper.testnet.near.org',
+  explorerUrl: 'https://explorer.testnet.near.org',
 };
 
+const web3Modal = new Web3Modal({ cacheProvider: true });
+
 // COMMON VARIABLES/FUNCTIONS
+export let walletAccount = null;
 export let web3 = null;
+export let ethProvider = null;
 
 export const initNear = async () => {
   const near = await nearAPI.connect(nearConfig);
 
-  const walletAccount = new nearAPI.WalletAccount(near, undefined);
-  await walletAccount.requestSignIn(
-    'evm',
-    'Balancer Exchange',
-    undefined,
-    undefined,
-  );
+  // TODO: WalletConnection needed? Or perhaps WalletAccount below isn't needed?
+  // const nearConnection = new nearAPI.WalletConnection(near);
+  // console.log({ nearConnection });
+  // setNearConnection(nearConnection);
 
-  const accountId = walletAccount.getAccountId();
+  walletAccount = new nearAPI.WalletAccount(near, undefined);
+
+  let accountId = walletAccount.getAccountId();
+  if (!accountId) {
+    await walletAccount.requestSignIn(
+      'evm',
+      'Balancer Exchange',
+      undefined,
+      undefined,
+    );
+    accountId = walletAccount.getAccountId();
+  }
+
+  setNearConnection(walletAccount);
 
   web3 = new Web3(
     new NearProvider({
@@ -66,6 +86,22 @@ export const initNear = async () => {
       isReadOnly: false,
     }),
   );
+};
+
+export const initEth = async () => {
+  ethProvider = await web3Modal.connect();
+  console.log({ ethProvider });
+  setEthProvider(ethProvider);
+};
+
+export const getEthAccount = async () => {
+  const [sender] = await ethProvider.request({ method: 'eth_requestAccounts' });
+  console.log({ sender });
+  return sender;
+};
+
+export const getNEARAccountId = () => {
+  return walletAccount.getAccountId();
 };
 
 export const getAccount = async (): Promise<string> => {
