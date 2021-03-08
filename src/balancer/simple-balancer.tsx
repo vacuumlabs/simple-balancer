@@ -1,5 +1,5 @@
 import { SOR } from '@balancer-labs/sor';
-import { InfuraProvider } from '@ethersproject/providers';
+import { InfuraProvider, Web3Provider } from '@ethersproject/providers';
 import BigNumber from 'bignumber.js';
 import {
   TOKEN_PRECISION,
@@ -13,6 +13,7 @@ import {
   GKC1_ADDRESS,
   GKC2_ADDRESS,
   initNear,
+  provider,
 } from './common';
 import { getProxy } from './simple-balancer-pools';
 
@@ -87,7 +88,7 @@ const swapGKC1forGKC2 = async (amount: number) => {
   console.log(`Swap ${amount}GKC1 for GKC2`);
   const GAS_PRICE = new BigNumber('100000000000');
   const MAX_POOLS = 4;
-  const CHAIN_ID = 42;
+  const CHAIN_ID = 1313161556;
 
   const infuraProvider = new InfuraProvider(
     'kovan',
@@ -95,7 +96,7 @@ const swapGKC1forGKC2 = async (amount: number) => {
   );
 
   const sor = new SOR(
-    infuraProvider,
+    new Web3Provider(provider),
     GAS_PRICE,
     MAX_POOLS,
     CHAIN_ID,

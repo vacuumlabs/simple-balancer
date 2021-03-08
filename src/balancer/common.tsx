@@ -40,6 +40,7 @@ const nearConfig = {
 
 // COMMON VARIABLES/FUNCTIONS
 export let web3 = null;
+export let provider = null;
 
 export const initNear = async () => {
   const near = await nearAPI.connect(nearConfig);
@@ -54,18 +55,17 @@ export const initNear = async () => {
 
   const accountId = walletAccount.getAccountId();
 
-  web3 = new Web3(
-    new NearProvider({
-      nodeUrl: nearConfig.nodeUrl,
-      keyStore: nearConfig.keyStore,
-      masterAccountId: accountId,
-      networkId: nearConfig.networkId,
-      evmAccountId: nearConfig.evmAccountId,
-      walletUrl: nearConfig.walletUrl,
-      explorerUrl: nearConfig.explorerUrl,
-      isReadOnly: false,
-    }),
-  );
+  provider = new NearProvider({
+    nodeUrl: nearConfig.nodeUrl,
+    keyStore: nearConfig.keyStore,
+    masterAccountId: accountId,
+    networkId: nearConfig.networkId,
+    evmAccountId: nearConfig.evmAccountId,
+    walletUrl: nearConfig.walletUrl,
+    explorerUrl: nearConfig.explorerUrl,
+    isReadOnly: false,
+  });
+  web3 = new Web3(provider);
 };
 
 export const getAccount = async (): Promise<string> => {
